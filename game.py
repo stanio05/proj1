@@ -34,7 +34,7 @@ BALL_RADIUS = 20
 RED_CARD_WIDTH = 30
 RED_CARD_HEIGHT = 45
 INITIAL_HEALTH = 3
-SPAWN_INTERVAL = 60  # frames
+SPAWN_INTERVAL = 60  # frames (1 second at 60 FPS)
 FALL_SPEED = 3
 
 
@@ -50,6 +50,8 @@ class HandTracker:
             min_tracking_confidence=0.5
         )
         self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            raise RuntimeError("Nie można otworzyć kamery. Upewnij się, że kamera jest podłączona i nie jest używana przez inną aplikację.")
         self.hand_x = 0.5  # Normalized position (0 to 1)
         
     def update(self) -> bool:
@@ -80,9 +82,9 @@ class HandTracker:
                 self.mp_hands.HAND_CONNECTIONS
             )
         
-        # Show camera feed
+        # Show camera feed (update window efficiently)
         cv2.imshow('Hand Tracking', frame)
-        cv2.waitKey(1)
+        cv2.waitKey(1) & 0xFF
         
         return True
     
@@ -248,7 +250,8 @@ class Game:
             
         # Update hand tracking
         if not self.hand_tracker.update():
-            print("Failed to get camera frame")
+            print("Nie można odczytać obrazu z kamery.")
+            print("Sprawdź połączenie kamery i uprawnienia dostępu.")
             self.running = False
             return
             
